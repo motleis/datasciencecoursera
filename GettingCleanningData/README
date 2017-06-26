@@ -1,0 +1,43 @@
+This file explains all the steps followed in the analysis of the dataset for the 'getting and cleanning data' final project.
+
+Four major processes are performed (I-IV). For each process the detailed sub-processes are mentioned in numbers (1,2,...).
+
+I. merge training and test data
+  1. load training data (subject, X and Y files)
+  2. load the '561' feature names (to be used as column headers) 
+  3. Remove all white space at the beginning and the end of the 
+  4. Split all the features in X_train into a vector. X_train contains values for 561 features. the used method is 'separate' from the tidyr package.
+  5. add header names for training columns
+  6. load testing data (from 3 files:subject, X and Y files)
+  7. Remove all white space at the beginning and the end of the X_train data. These must be removed so that the split function won't recognize them as separate elements
+  8. Split all the features in X_train into a vector. The X_train file contains values for 561 features. The separate method from tidyr package is used.
+ 9. added header names
+ 10. Aggreated training data (i.e. all the columns into one dataset)
+ 11. Aggreated testing data (i.e. all the columns into one dataset)
+ 12. Concatenated training and testing data into one tidy dataset that has all the training and testing data.
+
+II. measurement on the Mean and StdDev of each measurement
+1. Extracted the standard deviations measurement
+2. Extracted the mean measurement
+3. Extracted the voluntter id column
+4. Extracted the Activity column
+
+5. Aggregated the columns (standard deviation features, mean features, volunteer id and Activity) into one tidy dataset
+
+III. Use descriptive activity names to name the activities in the data set
+ 1. loaded the labels from file 'activity_labels.txt'
+ 2. Assign the labels to the last column 'Activity' of the dataset
+
+IV. A second independent tidy dataset with the average of each variable and each subject is created
+ 1. initialized the second tidy dataset that would holds the average mean values of the features in mean_std dataset
+ 2. created a vector to hold the volunteer id
+ 3. Created a character vector to hold the activity name
+ 4. Splited the data per Volunteer ID
+ 5. Created a matrix to hold the computation of the mean for each feature. The number of rows is equal to the number of volunteers
+mutliplied by the number of activities. The number of columns is equal to the number of features in the 'mean_std' dataset.
+ 6. Initialised a variable for the new rows to be added to the new dataset
+ 7. looped through each volunteer, created a new data frame per volunteer and corrected the column names.
+ 8. For each Volunteer dataset, Split the data frame into new dataframes per Activity. And for each feature in the new dataframe the average mean value is computed per feature.
+ 9. A data frame is created containing the volunteer id, activity name and all the Average mean values for all the features (those realated to mean and standard deviation).
+ Those featues has the prefix 'Avg_' appended to the beginning of the label (i.e. column name)
+  

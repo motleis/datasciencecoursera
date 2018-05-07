@@ -1,0 +1,171 @@
+---
+title: "Pratical Machine Learning Final Project"
+author: "Mohamed Tleis"
+date: "4/21/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(caret)
+library(rattle)
+library(dplyr)
+```
+
+## Overview
+
+Data from accelerometers on the belt, forearm, arm and dumbell of 6 participants is analyzed in this report. The participants were asked to perform borbell lifts in five different ways. Some are correct and some are not. The way the participants performed their movement is stored in the 'classe' variable in the training datset, where class A is the correctly performed move. The aim of this report is to build a model that can predict the manner a participant performs the lift.
+
+The following sections show how we fetch and prepare the data for prediction; and then we proceed on illustrating how our model is build and the strategy we follow to build our final model. A comparision of multiple models is illustrated. 
+Finally we use our models to predict the class label of the validation dataset. Both our random-forest model and tree boosting showed accuracy of 100% and 99.4% on the testing dataset and they both predicted the same labels on the validation data. 
+
+## Getting & cleaning Data
+```{r getdata, warning=FALSE}
+start_time <- Sys.time()
+# set the working directory
+  setwd("/Users/tleis/GitHub/datasciencecoursera/PracticalMachineLearning") 
+  
+# Download the training data
+  pmltrain <- './pml-train.csv'
+  # download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", pmltrain)
+  training <- read.csv(pmltrain)
+  # Filter out label and time columns
+  # training <- training %>% select(-c(X, user_name, raw_timestamp_part_1, raw_timestamp_part_2, cvtd_timestamp))
+
+  # Download the testing data
+  pmltest <- './pml-test.csv'
+  # download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", pmltest)
+  validation <- read.csv(pmltest)
+  # Filter the un-needed columns
+#  validation <- validation %>% select(-c(X,user_name, raw_timestamp_part_1, raw_timestamp_part_2, cvtd_timestamp))
+  
+# Split training data into training and testing
+  inTrain <- createDataPartition(y=training$classe, p = 0.7, list=FALSE)
+  training <- training[inTrain,]
+  testing  <- training[-inTrain,]
+  
+# remove first five columns (label and username columns)
+  training <- training[ , -(1:5)]
+  testing  <- testing[ , -(1:5)]
+  
+# remove the columns with near zero variance. 
+  nzv <- nearZeroVar(training)
+  training <- training[,-nzv]
+  testing <- testing[,-nzv]
+  
+# impute missing values
+  # preProc <- preProcess(training, method="knnImpute")
+  # trainset <- predict(preProc, training)
+  # testpreProc <- preProcess(testing, method="knnImpute")
+  # testset <- predict(testpreProc, testing)
+  allna <- sapply(training, function(x) mean(is.na(x)))>.95
+  trainset <- training[, allna == FALSE]
+  testset  <- testing[, allna == FALSE]
+  
+# impute correlated variables
+  # cor  <- findCorrelation(cor(trainset[, 1:dim(training)[2]-1]), cutoff=0.8)
+  cor  <- findCorrelation(cor(trainset[, 1:dim(trainset)[2]-1]), cutoff=0.8)
+  trainset <- trainset[,-cor]
+  testset  <- testset[,-cor]
+
+  # corrplot(cor, order = "FPC", method = "color", type = "lower", 
+  #        tl.cex = 0.8, tl.col = rgb(0, 0, 0))
+
+  # 10-K cross validation  
+   folds <- createFolds(y=trainset$classe, k = 10, list = TRUE, returnTrain = TRUE)
+# return testing
+# testing <- createFolds(y=pmltrain$classe, k = 10, list = TRUE, returnTrain = FALSE)
+ # retun first ten elements from third fold
+ dim(testing)
+# define training control
+  
+  
+  dim(trainset); dim(testset)
+  end_time <- Sys.time()
+  time_dif <- end_time - start_time
+  # Time preparing the data
+  print(time_dif)
+```
+
+##  Building a model
+
+###  Model 1 : Tree Classfication
+```{r treeclassificaiton}
+start_time <- Sys.time()
+# build tree model
+  train_control <- trainControl(method="cv", index = folds, savePredictions = 'final')
+  treeModel <- train(classe~., method="rpart", data=trainset, trControl=train_control)
+
+# plot
+  # plot(submodFit$finalModel, uniform=TRUE)
+  # text(submodFit$finalModel, use.n=TRUE,all=TRUE, cex=.8)
+  fancyRpartPlot(treeModel$finalModel)
+  
+# Evaluate model
+  tr_pred <- predict(treeModel, testset )
+
+  con <- confusionMatrix(tr_pred, testset$classe)
+  # accuracy(tr_pred, testset$classe)
+
+  # plot matrix results
+  plot(con$table, col = con$byClass, main = paste("Decision Tree - Accuracy =",round(con$overall['Accuracy'], 3)))
+  end_time <- Sys.time()
+  time_dif <- end_time - start_time
+  # Time time spent builting and analyzing Tree Model
+  print(time_dif)
+  
+```
+
+### Model 2: Random Forest
+```{r bagging}
+  start_time <- Sys.time()
+ # Random forest
+ # rfmodel<-train(classe~., data=trainset, method="rf", prox=TRUE)
+  rfmodel <- train(classe ~ ., data=trainset, method="rf", trControl=train_control)
+
+# Evaluate model
+  rf_pred <- predict(rfmodel, testset)
+  rf_con <- confusionMatrix(rf_pred, testset$classe)
+  
+  # plot matrix results
+  plot(rf_con$table, col = rf_con$byClass, main = paste("Random Forest- Accuracy =",
+                                                          round(rf_con$overall[1], 3)))
+  end_time <- Sys.time()
+  time_dif <- end_time - start_time
+  # Time spent on Random Forest
+  print(time_dif)
+```
+
+
+###  Model 3 : Generalized Tree-based Boosting  
+```{r gbm}
+start_time <- Sys.time()
+# Boosting
+ ## with trees
+  # control_gbm <- trainControl(method = "repeatedcv", number = 5, repeats = 1)
+  boostmodel <- train(classe~. , data=trainset, method="gbm", trControl=train_control, verbose=FALSE)
+
+# Evaluate model
+  boost_pred <- predict(boostmodel, testset)
+  boost_con <- confusionMatrix(boost_pred, testset$classe) 
+  
+  # plot matrix results
+  plot(boost_con$table, col = boost_con$byClass, main = paste("Boosting Model - Accuracy =",
+                                                          round(boost_con$overall[1], 3)))
+  
+  end_time <- Sys.time()
+  time_dif <- end_time - start_time
+  # Time Spent on generalized boosting
+  print(time_dif)
+```
+
+
+## Predict on Validation Test
+```{r validatemodels}
+  predict(treeModel , newdata=validation)
+  predict(rfmodel , newdata=validation) 
+  predict(boostmodel , newdata=validation)
+```
+
+## Conclusion
+Our approach to build a model is to first divide the training dataset into two parts. seventy percent training and thirty percent testing. After looking at the summary of all the features we notice that the first five columns are label and indexing features. Hence, our first step was to remove these features. Many of the other features have N.A. values and many others have near zero variance. Hence, we made sure to remove these features in out second step. After that, we eliminate the higly correlated features; i.e. those with correlation value above 0.8. As a result our final dataset included 41 features down from 160. We build three different models based on decision trees, random forest and generalized boosting. The accuracy of the later two models were 100 % and 99.4% consequtively. Applying these two models on the validation dataset yields the same prediction results. As a result, we elect the Random-Forest based model as our approach to predict the Class variable in this 'accelorometer' dataset. 

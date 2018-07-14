@@ -1,0 +1,10 @@
+name: simple_analyzer
+title: simple analyzer
+username:
+account: mtleis
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 380881
+bundleId: 1480438
+url: https://mtleis.shinyapps.io/simple_analyzer/
+when: 1531565682.15602

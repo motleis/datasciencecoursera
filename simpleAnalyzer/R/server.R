@@ -71,28 +71,28 @@ output$distPlot <- renderPlot({
 
     # draw the histogram with the specified number of bins
     hist(x, breaks = bins, col = 'darkgray', border = 'white', main="Response Feature")
-
   })
 
-
   # output$text <- renderText({input$File})
-  output$text <- renderText({
-    text <- "File name Content : "
+  output$text <- renderUI({
+    text <- "File Content : "
+    text2 <- ""
+    text3 <- ""
     inFile <- input$File
     if(is.null(inFile))
       text <- paste0(text, "File not found")
     else {
       inputData<-read.csv(inFile$datapath, header = input$header)
       # inputData <- read.csv(input$File)
-      text <- paste0(text, "Response Values: ")
+      text2 <- paste0(text2, "Response Values: ")
       response <- inputData[,1]
-      text <- paste0(text, list(response))
+      text2 <- paste0(text2, list(response))
 
-      text <- paste0(text, "Predictor Column:")
+      text3 <- paste0(text3, "Predictor Column:")
       feature <- inputData[,2]
-      text<-paste0(text, list(feature))
+      text3<-paste0(text3, list(feature))
     }
-    text
+    HTML(paste(text, text2, text3, sep = '<br/>'))
   })
 
   output$lmPlot <- renderPlot({
@@ -116,14 +116,31 @@ output$distPlot <- renderPlot({
 
 
   output$predictorStats <- renderUI({
-    inputData <- read.csv(input$File)
+    inFile<-input$File
+    if (is.null(inFile)) {
+      data(trees)
+      inputData <- data.frame(trees$Volume, trees$Girth)
+    }
+    else {
+      inputData <- read.csv(inFile$datapath, header=input$header)
+    }
+
+
     str1 <- paste0("Mean: " , format(round((mean(inputData[,2])),2)), nsmall=2)
     str2 <- paste0("Std: ", format(round(sd(inputData[,2]),2)), nsmall=2)
     HTML(paste(str1, str2, sep = '<br/>'))
   })
 
   output$responseStats <- renderUI({
-    inputData <- read.csv(input$File)
+    inFile<-input$File
+    if (is.null(inFile)) {
+      data(trees)
+      inputData <- data.frame(trees$Volume, trees$Girth)
+    }
+    else {
+      inputData <- read.csv(inFile$datapath, header=input$header)
+    }
+
     str1 <- paste0("Mean: ", format(round(mean(inputData[,1], 2)),nsmall=2))
     str2 <- paste0("Std: " , format(round(sd(inputData[,1]),2)), nsmall=2)
     HTML(paste(str1, str2, sep = '<br/>'))
@@ -135,7 +152,7 @@ output$distPlot <- renderPlot({
     The response is the first column in the csv file, and the predictor is the 2nd column.
     On the side panel, you can set the path of your csv file, set the number of bins for a histogram of the predictor,
     and view summary information regarding your dataset."
-    str3 <- "The main panel contains five tabs. The first 'Box-Plot' shows a box-plot for the predictor column.
+    str3 <- "The main panel contains five tabs. The first 'Histogram' shows a histogram for the predictor column.
     The second tab 'lm-plot' creates a linear model given the response and the predictor columns.
     Third tab 'data' shows the actual data in the input file. 'Help' tab contains this manual and the last tab
     'About' contain info about the developer of the app with version information"

@@ -22,7 +22,7 @@ shinyUI(fluidPage(
                            br(),
                            "Control the number of bins in the box-plot",
                            br(),
-                           "Open the Box-Plot tab to see effect"
+                           "Open the Histogram tab to see effect"
                   ),
 
                   # The Input Tab
@@ -55,9 +55,9 @@ shinyUI(fluidPage(
     # Show a plot of the generated distribution
     mainPanel(
       tabsetPanel(type="tabs",
-                  tabPanel("Box-Plot", br(), plotOutput("distPlot", brush=brushOpts(id="brush1"))),
+                  tabPanel("Histogram", br(), plotOutput("distPlot", brush=brushOpts(id="brush1"))),
                   tabPanel("lm-Plot", br(), plotOutput("lmPlot", brush=brushOpts(id="brush1"))),
-                  tabPanel("Data", br(), textOutput("text")),
+                  tabPanel("Data", br(), uiOutput("text")),
                   tabPanel("Help", br(), uiOutput("help")),
                   tabPanel("About", br(), textOutput("about")))
     )

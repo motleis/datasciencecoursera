@@ -6,36 +6,53 @@ output: ioslides_presentation
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, eval = FALSE)
 ```
 
 ## Simple Analyzer : Overview
-- A simple data Analyzer. A simple csv file can be uploaded where the first two columns are analyzed. The first column holds the response and the second column contains the main predictor feature.
+- A simple data Analyzer. 
+- A simple csv file can be uploaded where the first two columns are analyzed.
+- The first column holds the response and the second column contains the main predictor feature.
+- Access App at : 
 
-```{r simpleAnalyzer}
-  
+```{r simpleAnalyzer, echo = TRUE}
+   https://mtleis.shinyapps.io/simple_analyzer/
 ```
 
-## Input & Data Viewer
+## Input & Data Viewer {.smaller}
 - One the side panel, there is an Input tab, where a file can be uploaded.
 - The contents of the first two columns of the input file can be viewed in the Data tab in the main panel.
 - When a file is uploaded the histogram and the scatter plot are reactively updated.
 - When no file is present. A sample dataset from the default 'trees' data is loaded. The response column is the Volume feature. Main predictor is the Girth feature.
-```{r, eval = TRUE}
+
+```{r, eval = TRUE , echo = FALSE}
   data(trees)
-  data.frame(trees$Volume, trees$Girth)
+  head(data.frame(trees$Volume, trees$Girth))
 ```
 
 
-## Histogram
-- In the main panel, Histogram tab show a histogram of the main predictor.
+## Histogram {.smaller}
+- In the main panel, Histogram tab shows a histogram of the response feature.
 - The number of bins can be controlled via the Slider (located under Slider tab in the side panel).
-```{r eval=TRUE}
-  
+
+```{r histogram, eval=TRUE, echo = FALSE, fig.width=6, fig.height=3}
+   hist(trees$Volume, breaks = 20, col = 'darkgray', border = 'white',
+        main="Response Feature")
 ```
 
 ## Scatter Plot
 - In 'lm-Plot' tab, the response is plotted on the y-axis and the predictor on the x-axis.
+```{r scatter, eval=TRUE, fig.width=6, fig.height=3}
+  plot(trees$Girth, trees$Volume, xlab="Main Predictor", ylab="Response",
+       main="Predictor", cex=1.5, pch=16, bty="n")
+```
 
 ## Regression Model
 - Whenever a brushed dataset is selected, a lm line is plotted on the chart.
+
+```{r lm, eval=TRUE, fig.width=6, fig.height=3}
+  plot(trees$Girth, trees$Volume, xlab="Main Predictor", ylab="Response",
+       main="Predictor", cex=1.5, pch=16, bty="n")
+
+  abline(lm(trees$Volume~trees$Girth, data=trees), col='red', lwd=2)
+```
